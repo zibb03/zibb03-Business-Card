@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>원종윤 — 명함</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    html, body, #root { height: 100%; }
+    body {
+      font-family: 'Inter', 'Noto Sans KR', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: #fff;
+      color: #111;
+    }
+    .mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
+    /* 1px crisp grid lines */
+    .grid-line { box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.18); }
+    /* 명함 카드 inner subtle shadow */
+    .card-bezel {
+      box-shadow:
+        0 0 0 1px #000,
+        0 22px 60px -10px rgba(0,0,0,0.25),
+        0 6px 14px -4px rgba(0,0,0,0.15);
+      border-radius: 22px;
+    }
+    /* responsive business card: fills the available viewport, portrait/landscape auto */
+    /* landscape uses ISO ID-1 ratio (~1.586) — 91:55 */
+    .bcard {
+      width: min(94vw, calc((100dvh - 110px) * 55 / 91), 540px);
+      aspect-ratio: 55 / 91;
+    }
+    @media (orientation: landscape) {
+      .bcard {
+        width: min(94vw, calc((100dvh - 110px) * 91 / 55), 1200px);
+        aspect-ratio: 91 / 55;
+      }
+    }
+    /* hover underline */
+    .hover-underline:hover { text-decoration: underline; text-underline-offset: 3px; }
+    @keyframes fadein { from { opacity: 0; transform: translateY(4px);} to { opacity: 1; transform: none;} }
+    .fade-in { animation: fadein .35s ease-out both; }
+    /* hide scroll bars in tag rows */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { scrollbar-width: none; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useCallback, useContext, createContext, useRef } = React;
+
+    // ========================================
+    // 📦 Data (from Notion export)
+    // ========================================
+    const PROFILE = {
+      nameKo: "원종윤",
+      nameEn: "Jongyoon Won",
+      handle: "zibb03",
+      tagline: "한 걸음씩, 끝까지 끌고 갑니다.",
+      role: "Engineering · EdTech",
+      affiliation: ["HUFS 정보통신공학과", "멋쟁이사자처럼 14기"],
+      location: "Seoul, KR",
+      keywords: ["Engineering", "EdTech", "Notion", "Collaboration"],
+      socials: [
+        { label: "GitHub",    handle: "@zibb03",       url: "https://github.com/zibb03",      mark: "GH" },
+        { label: "LinkedIn",  handle: "Jongyoon Won",  url: "https://www.linkedin.com/in/jongyoon-won-b08509237/", mark: "LI" },
+        { label: "Instagram", handle: "@zibb03",       url: "https://www.instagram.com/zibb03/", mark: "IG" },
+        { label: "YouTube",   handle: "Jongyoon Won",  url: "https://youtube.com/playlist?list=PL2L_Gm7JI31ilErFFaRebD1ihKPzlmZjI&si=nopD7NgoBdCia0yW", mark: "YT" },
+      ],
+    };
+
+    const EDUCATION = [
+      { year: "2020", text: "발명동아리 SCINOVATOR" },
+      { year: "2022", text: "보성고등학교 졸업" },
+      { year: "2022", text: "한국외국어대학교 정보통신공학과 입학" },
+      { year: "2026", text: "대한민국 공군 제20전투비행단 만기 전역" },
+      { year: "2026", text: "한국외국어대학교 멋쟁이사자처럼 14기 (백엔드)" },
+    ];
+
+    const CAREER = [
+      { period: "2026.03–12", text: "HUFS 정보통신공학과 서버 관리 조교" },
+      { period: "2026.03–05", text: "하버스쿨 AI 공장장 부트캠프 2기 보조강사" },
+      { period: "2026.05",    text: "Quiet Operators Lab – AI native 전환 5월 코호트 보조강사" },
+      {
+        period: "2022.06–26.02",
+        text: "(주)공도 협업",
+        role: "강사 · 콘텐츠 제작",
+        projects: [
+          "넷마블 창문프로젝트",
+          "AI ESG School",
+          "디지털 새싹 캠프",
+          "MS Azure AI 웹·앱 교육",
+          "LG CNS AI Genius Academy",
+          "충남 INNOST Digital Academy",
+          "삼성 Solve For Tomorrow",
+        ],
+      },
+      { period: "2022–2023", text: "HUFS AI교육원 SW 봉사단 기획·운영" },
+    ];
+
+    const AWARDS = [
+      { date: "2022.01", text: "2021 LG CNS AI Genius Academy 우수상" },
+      { date: "2021.12", text: "2021 한국공항공사배 서울 고교생 창업경진대회 우수상" },
+      { date: "2021.11", text: "제34회 대한민국학생발명전시회 특허정보원장상" },
+      { date: "2021.09", text: "POSCO ICT 2021 AI CHALLENGE 장려상" },
+      { date: "2021.05", text: "제42회 서울특별시 학생과학발명경진대회 우수상" },
+      { date: "2021.05", text: "IPITEx Bronze Prize — Executive Director of NRCT" },
+      { date: "2020.12", text: "고려대 안암동 캠퍼스타운 ICT IoT 경진대회 금상" },
+      { date: "2020.10", text: "Korea International Youth Olympiad 4i — Gold Prize / Hanyang University Special Award" },
+      { date: "2019.07", text: "제32회 대한민국학생발명전시회 입상" },
+    ];
+
+    const CERTS = [
+      "정보처리기능사",
+      "지능형홈관리사",
+      "Google AI Essentials",
+      "네트워크 관리사 2급",
+    ];
+
+    const LANGUAGES = [
+      { lang: "English", test: "Duolingo English Test", score: "122", date: "2026.04" },
+    ];
+
+    const TOOLS  = ["Illustrator","PhotoShop","Claude Code"];
+    const SKILLS = ["Python","C/C++","Java","OpenCV","Pandas","TensorFlow","Keras"];
+
+    const PAGES = [
+      { path: "/",        label: "Profile", num: 1 },
+      { path: "/career",  label: "Career",  num: 2 },
+      { path: "/awards",  label: "Awards",  num: 3 },
+      { path: "/contact", label: "Contact", num: 4 },
+    ];
+
+    // ========================================
+    // 🔀 Hash Router
+    // ========================================
+    const RouterCtx = createContext({ path: "/", navigate: () => {} });
+
+    function Router({ children }) {
+      const [path, setPath] = useState(() => (window.location.hash.replace(/^#/, "") || "/"));
+      useEffect(() => {
+        const onHash = () => setPath(window.location.hash.replace(/^#/, "") || "/");
+        window.addEventListener("hashchange", onHash);
+        return () => window.removeEventListener("hashchange", onHash);
+      }, []);
+      const navigate = useCallback((to) => { window.location.hash = to; }, []);
+      return <RouterCtx.Provider value={{ path, navigate }}>{children}</RouterCtx.Provider>;
+    }
+    const useRouter = () => useContext(RouterCtx);
+
+    function Link({ to, className = "", children, ...rest }) {
+      const { navigate, path } = useRouter();
+      const active = path === to;
+      return (
+        <a
+          href={`#${to}`}
+          onClick={(e) => { e.preventDefault(); navigate(to); }}
+          aria-current={active ? "page" : undefined}
+          className={className}
+          {...rest}
+        >
+          {children}
+        </a>
+      );
+    }
+
+    // ========================================
+    // 🎨 Design System primitives
+    // ========================================
+    function NavButton({ active, children, onClick, as = "button", to, className = "" }) {
+      const base = "px-3 py-1.5 text-[13px] tracking-tight rounded-md border transition-colors";
+      const cls = active
+        ? "bg-black text-white border-black"
+        : "bg-white text-neutral-700 border-neutral-300 hover:border-neutral-500";
+      if (as === "link") {
+        return <Link to={to} className={`${base} ${cls} ${className}`}>{children}</Link>;
+      }
+      return <button onClick={onClick} className={`${base} ${cls} ${className}`}>{children}</button>;
+    }
+
+    function Chip({ children, active }) {
+      return (
+        <span className={`px-3 py-1 text-[12px] mono whitespace-nowrap rounded-md border ${active ? "border-black text-black" : "border-neutral-300 text-neutral-600"}`}>
+          {children}
+        </span>
+      );
+    }
+
+    function Avatar({ mark, href, title }) {
+      return (
+        <a href={href} target="_blank" rel="noreferrer" title={title}
+           className="block w-7 h-7 rounded-full border border-neutral-300 grid place-items-center text-[10px] mono text-neutral-600 hover:border-black hover:text-black bg-white">
+          {mark}
+        </a>
+      );
+    }
+
+    function SideIcon({ children, label, onClick }) {
+      return (
+        <button
+          onClick={onClick}
+          aria-label={label}
+          title={label}
+          className="w-7 h-7 rounded-full grid place-items-center text-neutral-400 hover:text-black hover:border-neutral-400 border border-transparent">
+          {children}
+        </button>
+      );
+    }
+
+    // ========================================
+    // 🧩 Layout: top nav, left rail, right rail, bottom tags
+    // ========================================
+    function TopBar() {
+      const { path } = useRouter();
+      const current = PAGES.find(p => p.path === path) ?? PAGES[0];
+      return (
+        <header className="grid grid-cols-3 items-center px-4 sm:px-6 h-14 border-b border-neutral-200">
+          <nav className="flex items-center gap-2">
+            <NavButton as="link" to="/" active={path === "/"}>Profile</NavButton>
+            <NavButton as="link" to="/career" active={path === "/career"}>Career</NavButton>
+            <NavButton as="link" to="/awards" active={path === "/awards"} className="hidden sm:inline-block">Awards</NavButton>
+          </nav>
+          <div className="justify-self-center w-full max-w-[420px]">
+            <div className="flex items-center justify-between border border-neutral-300 rounded-md px-3 py-1.5">
+              <span className="text-[13px] text-neutral-700 truncate">{current.label} · {PROFILE.nameKo}</span>
+              <span className="mono text-[11px] text-neutral-400 ml-3 shrink-0">{current.num}/4</span>
+            </div>
+          </div>
+          <div className="justify-self-end">
+            <NavButton as="link" to="/contact" active={path === "/contact"}>Contact</NavButton>
+          </div>
+        </header>
+      );
+    }
+
+    function LeftRail() {
+      return (
+        <aside className="w-12 sm:w-14 border-r border-neutral-200 flex flex-col items-center py-4 gap-4">
+          <div className="w-9 h-9 rounded-full bg-neutral-900 text-white grid place-items-center text-[12px] mono font-semibold">
+            JW
+          </div>
+          <div className="flex-1" />
+          <div className="flex flex-col gap-3">
+            {PROFILE.socials.map(s => (
+              <Avatar key={s.label} mark={s.mark} href={s.url} title={`${s.label} ${s.handle}`} />
+            ))}
+          </div>
+        </aside>
+      );
+    }
+
+    function RightRail() {
+      const { path, navigate } = useRouter();
+      const idx = Math.max(0, PAGES.findIndex(p => p.path === path));
+      const prev = PAGES[(idx - 1 + PAGES.length) % PAGES.length];
+      const next = PAGES[(idx + 1) % PAGES.length];
+      return (
+        <aside className="w-12 sm:w-14 border-l border-neutral-200 flex flex-col items-center py-4 gap-3">
+          <SideIcon label="닫기" onClick={() => navigate("/")}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+              <path d="M6 6l12 12M18 6L6 18"/>
+            </svg>
+          </SideIcon>
+          <div className="flex-1" />
+          <SideIcon label="이전" onClick={() => navigate(prev.path)}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+              <path d="M15 6l-6 6 6 6"/>
+            </svg>
+          </SideIcon>
+          <SideIcon label="저장" onClick={() => alert("명함 정보 복사 또는 저장 — 자유롭게 확장하세요.")}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+              <path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/>
+            </svg>
+          </SideIcon>
+          <SideIcon label="다음" onClick={() => navigate(next.path)}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+              <path d="M9 6l6 6-6 6"/>
+            </svg>
+          </SideIcon>
+        </aside>
+      );
+    }
+
+    function BottomBar({ tags }) {
+      const { path } = useRouter();
+      const current = PAGES.find(p => p.path === path) ?? PAGES[0];
+      return (
+        <footer className="grid grid-cols-[40px_1fr_60px] items-center border-t border-neutral-200 h-12 px-3">
+          <span className="mono text-[12px] text-neutral-400">i</span>
+          <div className="overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-2 justify-center min-w-max px-2">
+              {tags.map((t) => <Chip key={t}>{t}</Chip>)}
+            </div>
+          </div>
+          <span className="mono text-[12px] text-neutral-500 justify-self-end">{current.num}/4</span>
+        </footer>
+      );
+    }
+
+    function SectionTitle({ children }) {
+      return (
+        <div className="flex items-center gap-3 text-[13px] mono uppercase tracking-[0.18em] text-neutral-500">
+          <span className="h-px flex-1 bg-neutral-200" />
+          <span>{children}</span>
+          <span className="h-px flex-1 bg-neutral-200" />
+        </div>
+      );
+    }
+
+    // ========================================
+    // 📄 Pages
+    // ========================================
+    function CardShell({ scrollable = false, children }) {
+      const { path } = useRouter();
+      return (
+        <div className="h-full grid place-items-center px-4 py-5">
+          <article
+            key={path}
+            className="card-bezel bcard bg-white relative overflow-hidden fade-in"
+          >
+            <div className="absolute top-4 left-5 mono text-[11px] text-neutral-400 z-10 pointer-events-none">
+              BUSINESS CARD · {new Date().getFullYear()}
+            </div>
+            <div className="absolute top-4 right-5 mono text-[11px] text-neutral-400 z-10 pointer-events-none">
+              N° 001
+            </div>
+            <div className={`absolute inset-0 pt-12 pb-6 px-7 md:pt-14 md:pb-9 md:px-11 ${scrollable ? "overflow-y-auto no-scrollbar" : ""}`}>
+              {children}
+            </div>
+          </article>
+        </div>
+      );
+    }
+
+    function ProfilePage() {
+      return (
+        <CardShell>
+          <div className="h-full grid grid-rows-[1fr_auto] gap-4">
+            <div className="flex flex-col justify-end gap-2 md:gap-3">
+              <div className="text-[11px] md:text-[13px] mono uppercase tracking-[0.22em] text-neutral-500">{PROFILE.role}</div>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[0.95]">{PROFILE.nameKo}</h1>
+              <div className="mono text-[13px] md:text-[15px] text-neutral-500">{PROFILE.nameEn} · @{PROFILE.handle}</div>
+              <p className="text-[14px] md:text-[17px] text-neutral-700 mt-2 md:mt-3 max-w-[560px] leading-relaxed">{PROFILE.tagline}</p>
+            </div>
+
+            <div className="border-t border-neutral-200 pt-3 md:pt-4 grid grid-cols-2 gap-2 text-[12px] md:text-[14px]">
+              <div>
+                <div className="mono uppercase tracking-[0.18em] text-neutral-400 text-[10px] md:text-[11px]">Affiliation</div>
+                <div className="text-neutral-800 mt-1 leading-snug">
+                  <span>{PROFILE.affiliation[0]}</span>
+                  <span className="hidden landscape:inline"> · </span>
+                  <span className="block landscape:inline">{PROFILE.affiliation[1]}</span>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="mono uppercase tracking-[0.18em] text-neutral-400 text-[10px] md:text-[11px]">Location</div>
+                <div className="text-neutral-800 mt-1">{PROFILE.location}</div>
+              </div>
+            </div>
+          </div>
+        </CardShell>
+      );
+    }
+
+    function ListRow({ left, right, stacked }) {
+      // "period-like" entries (yyyy.mm, yyyy.mm-mm, yyyy-yyyy) stack when space is tight (portrait),
+      // but stay inline in landscape. Pure 4-digit years (e.g. "2020") remain inline everywhere.
+      const isPeriod =
+        stacked ||
+        (typeof left === "string" && (/[–\-~]/.test(left) || /\d\.\d/.test(left)));
+      if (isPeriod) {
+        return (
+          <li className="py-2 border-b border-neutral-100 last:border-0 landscape:grid landscape:grid-cols-[124px_1fr] landscape:gap-4 landscape:items-baseline">
+            <div className="mono text-[11px] text-neutral-400 mb-1 landscape:mb-0 landscape:pt-[2px] landscape:text-[12px]">{left}</div>
+            <div className="text-[14px] text-neutral-800">{right}</div>
+          </li>
+        );
+      }
+      return (
+        <li className="grid grid-cols-[64px_1fr] gap-3 py-2 border-b border-neutral-100 last:border-0">
+          <div className="mono text-[12px] text-neutral-400 pt-[2px]">{left}</div>
+          <div className="text-[14px] text-neutral-800">{right}</div>
+        </li>
+      );
+    }
+
+    function CareerPage() {
+      return (
+        <CardShell scrollable>
+          <div className="space-y-7">
+            <header className="space-y-1">
+              <div className="mono text-[11px] uppercase tracking-[0.2em] text-neutral-500">Page 02 — Career</div>
+              <h2 className="text-2xl font-semibold tracking-tight">학력 · 경력</h2>
+            </header>
+
+            <section className="space-y-3">
+              <SectionTitle>Education</SectionTitle>
+              <ul>
+                {EDUCATION.map((e, i) => <ListRow key={i} left={e.year} right={e.text} />)}
+              </ul>
+            </section>
+
+            <section className="space-y-3">
+              <SectionTitle>EdTech & Engineering</SectionTitle>
+              <ul>
+                {CAREER.map((c, i) => {
+                  if (c.projects) {
+                    return (
+                      <ListRow
+                        key={i}
+                        stacked
+                        left={c.period}
+                        right={
+                          <div className="space-y-2 py-1">
+                            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                              <span className="font-medium text-neutral-900">{c.text}</span>
+                              <span className="text-[12px] text-neutral-500">— {c.role}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5 pt-0.5">
+                              {c.projects.map(p => <Chip key={p}>{p}</Chip>)}
+                            </div>
+                          </div>
+                        }
+                      />
+                    );
+                  }
+                  return <ListRow key={i} stacked left={c.period} right={c.text} />;
+                })}
+              </ul>
+            </section>
+
+            <section className="space-y-3">
+              <SectionTitle>Tools & Skills</SectionTitle>
+              <div className="flex flex-wrap gap-1.5">
+                {TOOLS.map(t => <Chip key={t}>{t}</Chip>)}
+                {SKILLS.map(s => <Chip key={s} active>{s}</Chip>)}
+              </div>
+            </section>
+          </div>
+        </CardShell>
+      );
+    }
+
+    function AwardsPage() {
+      return (
+        <CardShell scrollable>
+          <div className="space-y-7">
+            <header className="space-y-1">
+              <div className="mono text-[11px] uppercase tracking-[0.2em] text-neutral-500">Page 03 — Awards</div>
+              <h2 className="text-2xl font-semibold tracking-tight">수상 · 자격증</h2>
+            </header>
+
+            <section className="space-y-3">
+              <SectionTitle>Awards</SectionTitle>
+              <ul>
+                {AWARDS.map((a, i) => <ListRow key={i} left={a.date} right={a.text} />)}
+              </ul>
+            </section>
+
+            <section className="space-y-3">
+              <SectionTitle>Languages</SectionTitle>
+              <ul>
+                {LANGUAGES.map((l, i) => (
+                  <ListRow
+                    key={i}
+                    left={l.date}
+                    right={
+                      <span className="inline-flex items-baseline gap-2">
+                        <span>{l.test}</span>
+                        <span className="mono text-[13px] font-medium text-black">{l.score}</span>
+                      </span>
+                    }
+                  />
+                ))}
+              </ul>
+            </section>
+
+            <section className="space-y-3">
+              <SectionTitle>Certificates</SectionTitle>
+              <ul className="grid sm:grid-cols-2 gap-y-1">
+                {CERTS.map((c, i) => (
+                  <li key={i} className="text-[14px] text-neutral-800 py-1 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-neutral-400" /> {c}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </div>
+        </CardShell>
+      );
+    }
+
+    function ContactPage() {
+      const copy = (text) => {
+        navigator.clipboard?.writeText(text);
+      };
+      return (
+        <CardShell scrollable>
+          <div className="space-y-6">
+            <header className="space-y-1 text-center">
+              <div className="mono text-[11px] uppercase tracking-[0.2em] text-neutral-500">Page 04 — Contact</div>
+              <h2 className="text-2xl font-semibold tracking-tight">연락처 · 소셜</h2>
+              <p className="text-[13px] text-neutral-500">메시지는 인스타·깃허브로 부담 없이 주세요.</p>
+            </header>
+
+            <ul className="border border-neutral-200 rounded-lg divide-y divide-neutral-200 overflow-hidden">
+              {PROFILE.socials.map(s => (
+                <li key={s.label} className="grid grid-cols-[96px_1fr_auto] items-center px-4 py-3 hover:bg-neutral-50">
+                  <span className="mono text-[11px] uppercase tracking-[0.2em] text-neutral-400">{s.label}</span>
+                  <a href={s.url} target="_blank" rel="noreferrer" className="text-[14px] text-neutral-900 hover-underline truncate">
+                    {s.handle}
+                  </a>
+                  <button onClick={() => copy(s.url)} title="링크 복사"
+                          className="text-[11px] mono text-neutral-500 hover:text-black px-2 py-1 border border-neutral-200 rounded">
+                    copy
+                  </button>
+                </li>
+              ))}
+            </ul>
+
+          </div>
+        </CardShell>
+      );
+    }
+
+    function NotFound() {
+      return (
+        <div className="h-full grid place-items-center">
+          <div className="text-center space-y-2">
+            <div className="mono text-[12px] text-neutral-400">404</div>
+            <Link to="/" className="text-[14px] underline">메인으로 돌아가기</Link>
+          </div>
+        </div>
+      );
+    }
+
+    // ========================================
+    // 🚀 App
+    // ========================================
+    function App() {
+      return (
+        <Router>
+          <Shell />
+        </Router>
+      );
+    }
+
+    function PageNav() {
+      const { path } = useRouter();
+      return (
+        <nav className="relative flex items-center justify-center flex-wrap gap-2 px-4 sm:px-6 py-4 border-t border-neutral-200 bg-white">
+          <NavButton as="link" to="/" active={path === "/"}>Profile</NavButton>
+          <NavButton as="link" to="/career" active={path === "/career"}>Career</NavButton>
+          <NavButton as="link" to="/awards" active={path === "/awards"}>Awards</NavButton>
+          <NavButton as="link" to="/contact" active={path === "/contact"}>Contact</NavButton>
+          <a
+            href="settings.html"
+            className="md:absolute md:right-4 md:top-1/2 md:-translate-y-1/2 px-3 py-1.5 text-[12px] mono text-neutral-500 border border-neutral-300 rounded-md hover:border-black hover:text-black bg-white"
+            title="iOS 3 설정 앱 스타일로 전환"
+          >
+            iOS 3
+          </a>
+        </nav>
+      );
+    }
+
+    function Shell() {
+      const { path } = useRouter();
+
+      let page;
+      if (path === "/") page = <ProfilePage />;
+      else if (path === "/career") page = <CareerPage />;
+      else if (path === "/awards") page = <AwardsPage />;
+      else if (path === "/contact") page = <ContactPage />;
+      else page = <NotFound />;
+
+      return (
+        <div className="h-full grid grid-rows-[1fr_auto] bg-white">
+          <main className="min-h-0 overflow-hidden">{page}</main>
+          <PageNav />
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>

@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>원종윤 — Settings</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, 'Noto Sans KR', sans-serif;
+      background: radial-gradient(ellipse at center, #2b2d33 0%, #0d0e10 70%);
+      color: #000;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100dvh;
+    }
+    /* dedicated stage that always centers the phone, both axes, regardless of orientation */
+    #root {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+    }
+
+    /* ===== iPhone bezel (real iPhone 3GS PSD image, 389×719) ===== */
+    .phone {
+      /* fixed real-device size, scaled down only if viewport can't hold it */
+      height: min(calc(100dvh - 24px), 719px);
+      aspect-ratio: 389 / 719;
+      width: auto;
+      max-width: 94vw;
+      position: relative;
+      background: url('assets/ios3/iphone.png') center / 100% 100% no-repeat;
+      filter: drop-shadow(0 18px 30px rgba(0,0,0,0.5));
+    }
+    /* When viewport is landscape, swap to pre-rotated landscape phone image. */
+    @media (orientation: landscape) {
+      .phone {
+        height: min(calc(100dvh - 24px), 389px);
+        aspect-ratio: 719 / 389;
+        background-image: url('assets/ios3/iphone-landscape.png');
+      }
+    }
+
+    /* ===== Screen ===== */
+    /* In the source PSD the screen sits at (38, 119) and is 320×480 inside a 389×719 phone. */
+    .screen {
+      position: absolute;
+      left:   9.768%;   /*  38 / 389 */
+      top:   16.551%;   /* 119 / 719 */
+      width: 82.262%;   /* 320 / 389 */
+      height:66.760%;   /* 480 / 719 */
+      background: #c5c7cf;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    @media (orientation: landscape) {
+      .screen {
+        /* recomputed for CCW rotation (home button now on the right) */
+        left:  16.551%;   /* 119 / 719 */
+        top:    7.712%;   /*  30 / 389 */
+        width: 66.760%;   /* 480 / 719 */
+        height:82.262%;   /* 320 / 389 */
+      }
+    }
+
+    /* ===== Status bar (iOS 3 glossy gray) ===== */
+    .status-bar {
+      height: 20px;
+      background:
+        linear-gradient(to bottom,
+          #8e8e94 0%, #6e6e74 45%, #565660 55%, #353539 100%);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 6px;
+      font-size: 11px;
+      color: #fff;
+      font-weight: 700;
+      text-shadow: 0 -1px 0 rgba(0,0,0,0.55);
+      flex-shrink: 0;
+      letter-spacing: 0.2px;
+    }
+    .status-bar .bars { display: inline-flex; align-items: flex-end; gap: 2px; }
+    .status-bar .bars i { display: block; width: 3px; background: #fff; border-radius: 1px; }
+    .battery {
+      position: relative;
+      width: 22px; height: 10px;
+      border: 1px solid #fff;
+      border-radius: 2px;
+      display: inline-block;
+    }
+    .battery::after {
+      content: '';
+      position: absolute;
+      right: -3px; top: 2px;
+      width: 2px; height: 4px;
+      background: #fff;
+      border-radius: 0 1px 1px 0;
+    }
+    .battery i {
+      position: absolute;
+      left: 1px; top: 1px;
+      bottom: 1px;
+      width: 16px;
+      background: #fff;
+    }
+
+    /* ===== Nav bar (iOS 3 blue glossy) ===== */
+    .nav-bar {
+      height: 44px;
+      background:
+        linear-gradient(to bottom,
+          #b8c2d2 0%, #95a4be 50%, #7888a8 51%, #62749a 100%);
+      border-bottom: 1px solid #2e3a55;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 8px;
+      color: #fff;
+      font-weight: 700;
+      font-size: 17px;
+      text-shadow: 0 -1px 0 rgba(0,0,0,0.5);
+      flex-shrink: 0;
+      position: relative;
+    }
+    .nav-title {
+      position: absolute;
+      left: 0; right: 0;
+      text-align: center;
+      pointer-events: none;
+    }
+    .nav-btn {
+      background:
+        linear-gradient(to bottom,
+          #97a5bd 0%, #7787a5 50%, #5d6f93 51%, #4d6088 100%);
+      border: 1px solid #2e3a55;
+      border-radius: 5px;
+      padding: 4px 9px;
+      color: #fff;
+      font-size: 12.5px;
+      font-weight: 700;
+      text-shadow: 0 -1px 0 rgba(0,0,0,0.55);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.35);
+      position: relative;
+      cursor: pointer;
+      letter-spacing: 0.2px;
+      z-index: 2;
+    }
+    .nav-back { padding-left: 14px; margin-left: 9px; }
+    .nav-back::before {
+      content: '';
+      position: absolute;
+      left: -9px;
+      top: 50%;
+      width: 18px;
+      height: 18px;
+      background:
+        linear-gradient(135deg, #97a5bd 0%, #7787a5 50%, #5d6f93 51%, #4d6088 100%);
+      border-left: 1px solid #2e3a55;
+      border-bottom: 1px solid #2e3a55;
+      transform: translateY(-50%) rotate(45deg);
+      border-bottom-left-radius: 3px;
+      box-shadow: inset 1px -1px 0 rgba(255,255,255,0.18);
+    }
+
+    /* ===== Content / cells ===== */
+    .content {
+      flex: 1 1 0;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 10px 0 16px;
+      background:
+        linear-gradient(to bottom, #c8cbd3 0%, #b9bcc5 100%);
+    }
+    .group-label {
+      padding: 4px 18px 4px;
+      font-size: 12px;
+      color: #404a5c;
+      font-weight: 700;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.75);
+      letter-spacing: 0.2px;
+    }
+    .group {
+      margin: 4px 9px 16px;
+      background: #fff;
+      border-radius: 9px;
+      border: 1px solid #a9adb8;
+      box-shadow:
+        0 1px 0 rgba(255,255,255,0.7) inset,
+        0 1px 1px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+    .cell {
+      display: flex;
+      align-items: center;
+      padding: 8px 11px;
+      min-height: 42px;
+      border-top: 1px solid rgba(255,255,255,0.85);
+      border-bottom: 1px solid #c5c7d0;
+      font-size: 15px;
+      color: #000;
+      background: linear-gradient(to bottom, #ffffff 0%, #f6f7f9 100%);
+    }
+    .cell:first-child { border-top: none; }
+    .cell:last-child  { border-bottom: none; }
+    .cell.tap { cursor: pointer; }
+    .cell.tap:active { background: linear-gradient(to bottom, #2c6cff 0%, #1956e2 100%); color: #fff; }
+    .cell-label { color: #000; font-weight: 500; flex: 0 0 auto; white-space: nowrap; }
+    .cell-spacer { flex: 1; min-width: 8px; }
+    .cell-value {
+      color: #5b7ec4;
+      font-weight: 500;
+      text-align: right;
+      margin-left: 8px;
+      min-width: 0;
+      flex: 1 1 auto;
+      word-break: break-word;
+    }
+    .cell-disclosure::after {
+      content: '';
+      display: inline-block;
+      width: 9px; height: 9px;
+      border-right: 2px solid #a8acb8;
+      border-top: 2px solid #a8acb8;
+      transform: rotate(45deg);
+      margin-left: 10px;
+      flex-shrink: 0;
+    }
+
+    /* stacked cell (multi-line) */
+    .cell-stacked { display: block; padding: 8px 11px 9px; }
+    .cell-stacked .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .cell-stacked .stacked-top {
+      font-size: 11px;
+      color: #888;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      margin-bottom: 2px;
+    }
+    .cell-stacked .stacked-main {
+      font-size: 15px;
+      color: #000;
+      font-weight: 500;
+      line-height: 1.35;
+    }
+    .cell-stacked .sub { color: #555; font-size: 12px; margin-top: 3px; line-height: 1.4; }
+
+    /* icon (rounded-square) */
+    .icon {
+      width: 29px; height: 29px;
+      border-radius: 6px;
+      margin-right: 10px;
+      flex-shrink: 0;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.45),
+        inset 0 -1px 0 rgba(0,0,0,0.18),
+        0 1px 0 rgba(255,255,255,0.7);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      text-shadow: 0 -1px 0 rgba(0,0,0,0.35);
+    }
+    .icon-blue   { background: linear-gradient(to bottom, #6da2f0 0%, #2566d2 100%); }
+    .icon-purple { background: linear-gradient(to bottom, #b186db 0%, #6a3aa8 100%); }
+    .icon-orange { background: linear-gradient(to bottom, #f0b15a 0%, #d6781f 100%); }
+    .icon-red    { background: linear-gradient(to bottom, #f07474 0%, #c8262a 100%); }
+    .icon-green  { background: linear-gradient(to bottom, #7ed07e 0%, #2d8d2d 100%); }
+    .icon-teal   { background: linear-gradient(to bottom, #6fc5cf 0%, #237b87 100%); }
+    .icon-gray   { background: linear-gradient(to bottom, #b6bac4 0%, #6d717a 100%); }
+    .icon-pink   { background: linear-gradient(to bottom, #f08fb6 0%, #c63973 100%); }
+    .icon-yellow { background: linear-gradient(to bottom, #f7d24f 0%, #c79100 100%); color: #fff; }
+
+    /* page enter animation */
+    .fade-in { animation: fadein .22s ease-out both; }
+    @keyframes fadein {
+      from { opacity: 0; transform: translateX(8px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* hide scrollbar inside the iPhone screen */
+    .content::-webkit-scrollbar { display: none; }
+    .content { scrollbar-width: none; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useCallback, createContext, useContext } = React;
+
+    // ========================================
+    // 📦 Data (mirrors index.html)
+    // ========================================
+    const PROFILE = {
+      nameKo: "원종윤",
+      nameEn: "Jongyoon Won",
+      handle: "zibb03",
+      role: "Engineering · EdTech",
+      tagline: "한 걸음씩, 끝까지 끌고 갑니다.",
+      affiliation: ["HUFS 정보통신공학과", "멋쟁이사자처럼 14기"],
+      location: "Seoul, KR",
+      socials: [
+        { label: "GitHub",    handle: "@zibb03",      url: "https://github.com/zibb03" },
+        { label: "LinkedIn",  handle: "Jongyoon Won", url: "https://www.linkedin.com/in/jongyoon-won-b08509237/" },
+        { label: "Instagram", handle: "@zibb03",      url: "https://www.instagram.com/zibb03/" },
+        { label: "YouTube",   handle: "Jongyoon Won", url: "https://youtube.com/playlist?list=PL2L_Gm7JI31ilErFFaRebD1ihKPzlmZjI&si=nopD7NgoBdCia0yW" },
+      ],
+    };
+    const EDUCATION = [
+      { year: "2020", text: "발명동아리 SCINOVATOR" },
+      { year: "2022", text: "보성고등학교 졸업" },
+      { year: "2022", text: "HUFS 정보통신공학과 입학" },
+      { year: "2026", text: "공군 제20전투비행단 만기 전역" },
+      { year: "2026", text: "멋쟁이사자처럼 14기 (백엔드)" },
+    ];
+    const CAREER = [
+      { period: "2026.03–12",    text: "HUFS 정보통신공학과 서버 관리 조교" },
+      { period: "2026.03–05",    text: "하버스쿨 AI 공장장 부트캠프 2기 보조강사" },
+      { period: "2026.05",       text: "Quiet Operators Lab – AI native 5월 코호트 보조강사" },
+      {
+        period: "2022.06–26.02",
+        text: "(주)공도 협업 — 강사 / 콘텐츠 제작",
+        sub: "넷마블 창문 · AI ESG School · 디지털 새싹 · MS Azure AI 웹·앱 · LG CNS AI Genius · 충남 INNOST · 삼성 Solve For Tomorrow",
+      },
+      { period: "2022–2023",     text: "HUFS AI교육원 SW 봉사단 기획·운영" },
+    ];
+    const AWARDS = [
+      { date: "2022.01", text: "2021 LG CNS AI Genius Academy 우수상" },
+      { date: "2021.12", text: "한국공항공사배 서울 고교생 창업경진대회 우수상" },
+      { date: "2021.11", text: "제34회 대한민국학생발명전시회 특허정보원장상" },
+      { date: "2021.09", text: "POSCO ICT 2021 AI CHALLENGE 장려상" },
+      { date: "2021.05", text: "제42회 서울특별시 학생과학발명경진대회 우수상" },
+      { date: "2021.05", text: "IPITEx Bronze Prize — Exec. Director of NRCT" },
+      { date: "2020.12", text: "고려대 안암동 캠퍼스타운 ICT IoT 경진대회 금상" },
+      { date: "2020.10", text: "KIYO 4i — Gold Prize / Hanyang Univ. Special" },
+      { date: "2019.07", text: "제32회 대한민국학생발명전시회 입상" },
+    ];
+    const CERTS = [
+      "정보처리기능사",
+      "지능형홈관리사",
+      "Google AI Essentials",
+      "네트워크 관리사 2급",
+    ];
+    const LANGUAGES = [
+      { lang: "English", test: "Duolingo English Test", score: "122", date: "2026.04" },
+    ];
+    const TOOLS  = ["Illustrator","PhotoShop","Claude Code"];
+    const SKILLS = ["Python","C/C++","Java","OpenCV","Pandas","TensorFlow","Keras"];
+
+    // ========================================
+    // 🔀 Hash Router
+    // ========================================
+    const RouterCtx = createContext({ path: "/", navigate: () => {} });
+    function Router({ children }) {
+      const [path, setPath] = useState(() => window.location.hash.replace(/^#/, "") || "/");
+      useEffect(() => {
+        const onHash = () => setPath(window.location.hash.replace(/^#/, "") || "/");
+        window.addEventListener("hashchange", onHash);
+        return () => window.removeEventListener("hashchange", onHash);
+      }, []);
+      const navigate = useCallback((to) => { window.location.hash = to; }, []);
+      return <RouterCtx.Provider value={{ path, navigate }}>{children}</RouterCtx.Provider>;
+    }
+    const useRouter = () => useContext(RouterCtx);
+
+    // ========================================
+    // 🎨 iOS chrome
+    // ========================================
+    function formatTime() {
+      const d = new Date();
+      const h = d.getHours() % 12 || 12;
+      const m = d.getMinutes().toString().padStart(2, "0");
+      const ampm = d.getHours() < 12 ? "AM" : "PM";
+      return `${h}:${m} ${ampm}`;
+    }
+
+    function StatusBar() {
+      const [time, setTime] = useState(formatTime());
+      useEffect(() => {
+        const t = setInterval(() => setTime(formatTime()), 30000);
+        return () => clearInterval(t);
+      }, []);
+      return (
+        <div className="status-bar">
+          <span className="flex items-center gap-1.5">
+            <span className="bars">
+              <i style={{height:"3px"}} />
+              <i style={{height:"5px"}} />
+              <i style={{height:"7px"}} />
+              <i style={{height:"9px"}} />
+              <i style={{height:"11px",opacity:0.4}} />
+            </span>
+            <span>AT&amp;T</span>
+            <span style={{fontSize:"10px"}}>3G</span>
+          </span>
+          <span>{time}</span>
+          <span className="flex items-center gap-1">
+            <span style={{fontSize:"10px"}}>100%</span>
+            <span className="battery"><i /></span>
+          </span>
+        </div>
+      );
+    }
+
+    function NavBar({ title, back, onBack, rightBtn }) {
+      const { navigate } = useRouter();
+      const handleBack = onBack || (() => navigate("/"));
+      return (
+        <div className="nav-bar">
+          {back ? (
+            <button className="nav-btn nav-back" onClick={handleBack}>{back}</button>
+          ) : <span style={{width: 1}} />}
+          <span className="nav-title">{title}</span>
+          {rightBtn ? rightBtn : <span style={{width: 1}} />}
+        </div>
+      );
+    }
+
+    function Group({ label, children }) {
+      return (
+        <>
+          {label && <div className="group-label">{label}</div>}
+          <div className="group">{children}</div>
+        </>
+      );
+    }
+
+    function Cell({ icon, iconColor, label, value, onClick, disclosure, hideIcon }) {
+      const cn = `cell ${disclosure || onClick ? "tap" : ""} ${disclosure ? "cell-disclosure" : ""}`;
+      return (
+        <div className={cn} onClick={onClick}>
+          {!hideIcon && icon !== undefined && (
+            <span className={`icon icon-${iconColor || "gray"}`}>{icon}</span>
+          )}
+          <span className="cell-label">{label}</span>
+          <span className="cell-spacer" />
+          {value !== undefined && value !== null && (
+            <span className="cell-value">{value}</span>
+          )}
+        </div>
+      );
+    }
+
+    function StackedCell({ top, main, sub }) {
+      return (
+        <div className="cell cell-stacked">
+          {top && <div className="stacked-top">{top}</div>}
+          <div className="stacked-main">{main}</div>
+          {sub && <div className="sub">{sub}</div>}
+        </div>
+      );
+    }
+
+    // ========================================
+    // 📄 Pages (iOS Settings style)
+    // ========================================
+    function SettingsPage() {
+      const { navigate } = useRouter();
+      return (
+        <>
+          <NavBar title="Settings" />
+          <div className="content fade-in">
+            <Group>
+              <div className="cell cell-stacked" style={{padding: "12px 11px"}}>
+                <div className="row">
+                  <div>
+                    <div style={{fontSize: "20px", fontWeight: 600}}>{PROFILE.nameKo}</div>
+                    <div style={{fontSize: "12px", color: "#555", marginTop: "2px"}}>
+                      {PROFILE.nameEn} · @{PROFILE.handle}
+                    </div>
+                  </div>
+                  <span className="icon icon-blue" style={{width: "44px", height: "44px", fontSize: "18px"}}>JW</span>
+                </div>
+              </div>
+              <Cell icon="!" iconColor="teal" label="Role" value={PROFILE.role} />
+              <Cell icon="“" iconColor="yellow" label="Tagline" value={PROFILE.tagline} />
+            </Group>
+
+            <Group>
+              <Cell icon="🏷" iconColor="orange" label="Affiliation" value={PROFILE.affiliation.join(" · ")} />
+              <Cell icon="◉" iconColor="red"    label="Location"    value={PROFILE.location} />
+            </Group>
+
+            <Group>
+              <Cell icon="▤" iconColor="purple" label="Career"  disclosure onClick={() => navigate("/career")}  hideIcon={false} />
+              <Cell icon="★" iconColor="yellow" label="Awards"  disclosure onClick={() => navigate("/awards")} />
+              <Cell icon="A" iconColor="green"  label="Languages" value="English" disclosure onClick={() => navigate("/awards")} />
+              <Cell icon="✓" iconColor="blue"   label="Certificates" disclosure onClick={() => navigate("/awards")} />
+            </Group>
+
+            <Group>
+              <Cell icon="✉" iconColor="blue" label="Contact" disclosure onClick={() => navigate("/contact")} />
+            </Group>
+
+            <Group label="VIEW">
+              <Cell
+                icon="▢"
+                iconColor="gray"
+                label="Business Card"
+                value="Switch"
+                disclosure
+                onClick={() => { window.location.href = "index.html"; }}
+              />
+            </Group>
+
+            <div className="group-label" style={{textAlign: "center", marginTop: "4px"}}>
+              BUSINESS CARD · {new Date().getFullYear()}
+            </div>
+          </div>
+        </>
+      );
+    }
+
+    function CareerPage() {
+      return (
+        <>
+          <NavBar title="Career" back="Settings" />
+          <div className="content fade-in">
+            <Group label="EDUCATION">
+              {EDUCATION.map((e, i) => (
+                <Cell key={i} hideIcon label={e.text} value={e.year} />
+              ))}
+            </Group>
+
+            <Group label="EDTECH & ENGINEERING">
+              {CAREER.map((c, i) => (
+                <StackedCell key={i} top={c.period} main={c.text} sub={c.sub} />
+              ))}
+            </Group>
+
+            <Group label="TOOLS">
+              <Cell hideIcon label="Tools" value={TOOLS.join(" · ")} />
+              <Cell hideIcon label="Skills" value={SKILLS.join(" · ")} />
+            </Group>
+          </div>
+        </>
+      );
+    }
+
+    function AwardsPage() {
+      return (
+        <>
+          <NavBar title="Awards" back="Settings" />
+          <div className="content fade-in">
+            <Group label="AWARDS">
+              {AWARDS.map((a, i) => (
+                <StackedCell key={i} top={a.date} main={a.text} />
+              ))}
+            </Group>
+
+            <Group label="LANGUAGES">
+              {LANGUAGES.map((l, i) => (
+                <Cell key={i} hideIcon label={`${l.test} ${l.score}`} value={l.date} />
+              ))}
+            </Group>
+
+            <Group label="CERTIFICATES">
+              {CERTS.map((c, i) => (
+                <Cell key={i} hideIcon label={c} />
+              ))}
+            </Group>
+          </div>
+        </>
+      );
+    }
+
+    function ContactPage() {
+      return (
+        <>
+          <NavBar title="Contact" back="Settings" />
+          <div className="content fade-in">
+            <Group>
+              {PROFILE.socials.map((s) => (
+                <Cell
+                  key={s.label}
+                  icon={s.label[0]}
+                  iconColor={
+                    s.label === "GitHub" ? "gray" :
+                    s.label === "LinkedIn" ? "blue" :
+                    s.label === "Instagram" ? "pink" :
+                    "red"
+                  }
+                  label={s.label}
+                  value={s.handle}
+                  disclosure
+                  onClick={() => window.open(s.url, "_blank")}
+                />
+              ))}
+            </Group>
+            <div className="group-label" style={{textAlign:"center"}}>Tap a row to open</div>
+          </div>
+        </>
+      );
+    }
+
+    function Phone() {
+      const { path } = useRouter();
+      let page;
+      if (path === "/")             page = <SettingsPage />;
+      else if (path === "/career")  page = <CareerPage />;
+      else if (path === "/awards")  page = <AwardsPage />;
+      else if (path === "/contact") page = <ContactPage />;
+      else                          page = <SettingsPage />;
+
+      return (
+        <div className="phone">
+          <div className="screen">
+            <StatusBar />
+            {page}
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      return (
+        <Router>
+          <Phone />
+        </Router>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
