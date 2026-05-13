@@ -20,3 +20,5 @@ reference-clip-*.png
 Thumbs.db
 .vscode/
 .idea/
+
+.vercel
