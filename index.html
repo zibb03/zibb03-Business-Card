@@ -334,7 +334,7 @@
             {/* corner labels + a fade band so scrolled content never bleeds into them */}
             <div className="absolute top-0 left-0 right-0 z-10 pointer-events-none flex items-start justify-between pt-3 pb-7 px-5 md:pb-8" style={{background: "linear-gradient(to bottom, #ffffff 0%, #ffffff 55%, rgba(255,255,255,0) 100%)"}}>
               <div className="mono text-[11px] text-neutral-400">BUSINESS CARD · {new Date().getFullYear()}</div>
-              <div className="mono text-[11px] text-neutral-400">N° 001</div>
+              <div className="mono text-[11px] text-neutral-400">zibb03</div>
             </div>
             <div className={`absolute inset-0 pt-12 pb-6 px-7 md:pt-14 md:pb-9 md:px-11 ${scrollable ? "overflow-y-auto no-scrollbar" : ""}`}>
               {children}
@@ -560,30 +560,30 @@
     function PageNav() {
       const { path } = useRouter();
       return (
-        <nav className="relative flex items-center justify-center flex-wrap gap-2 px-12 sm:px-14 py-4 border-t border-neutral-200 bg-white">
+        <nav className="relative flex items-center justify-center flex-wrap gap-2 px-4 sm:px-6 md:pr-14 py-4 border-t border-neutral-200 bg-white">
           <NavButton as="link" to="/" active={path === "/"}>Profile</NavButton>
           <NavButton as="link" to="/career" active={path === "/career"}>Career</NavButton>
           <NavButton as="link" to="/awards" active={path === "/awards"}>Awards</NavButton>
           <NavButton as="link" to="/contact" active={path === "/contact"}>Contact</NavButton>
           <a
+            href="settings.html"
+            className="px-3 py-1.5 text-[12px] mono text-neutral-500 border border-neutral-300 rounded-md hover:border-black hover:text-black bg-white md:absolute md:right-4 md:top-1/2 md:-translate-y-1/2"
+            title="iOS 3 설정 앱 스타일로 전환"
+          >
+            iOS
+          </a>
+          <a
             href="assets/business-card.png"
             download="jongyoon-won-business-card.png"
             aria-label="명함을 PNG로 저장"
             title="명함을 PNG로 저장"
-            className="absolute right-2 sm:right-4 bottom-[calc(100%+8px)] w-8 h-8 grid place-items-center text-neutral-500 border border-neutral-300 rounded-md hover:border-black hover:text-black bg-white"
+            className="absolute right-2 sm:right-4 bottom-[calc(100%+8px)] w-8 h-8 grid place-items-center text-neutral-500 border border-neutral-300 rounded-md hover:border-black hover:text-black bg-white shadow-sm"
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M12 3v12"/>
               <path d="M7 11l5 5 5-5"/>
               <path d="M5 21h14"/>
             </svg>
-          </a>
-          <a
-            href="settings.html"
-            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 px-3 py-1.5 text-[12px] mono text-neutral-500 border border-neutral-300 rounded-md hover:border-black hover:text-black bg-white"
-            title="iOS 3 설정 앱 스타일로 전환"
-          >
-            iOS
           </a>
         </nav>
       );
