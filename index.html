@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>원종윤 — 명함</title>
+  <title>원종윤 · Noel</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -62,6 +62,7 @@
     const PROFILE = {
       nameKo: "원종윤",
       nameEn: "Jongyoon Won",
+      nameAlias: "Noel",
       handle: "zibb03",
       tagline: "한 걸음씩, 끝까지 끌고 갑니다.",
       role: "Engineering · EdTech",
@@ -93,12 +94,12 @@
         text: "(주)공도 협업",
         role: "강사 · 콘텐츠 제작",
         projects: [
-          "넷마블 창문프로젝트",
+          "넷마블 창문 프로젝트",
           "AI ESG School",
           "디지털 새싹 캠프",
           "MS Azure AI 웹·앱 교육",
           "LG CNS AI Genius Academy",
-          "충남 INNOST Digital Academy",
+          "충남 INNOST Academy",
           "삼성 Solve For Tomorrow",
         ],
       },
@@ -125,7 +126,7 @@
     ];
 
     const LANGUAGES = [
-      { lang: "English", test: "Duolingo English Test", score: "122", date: "2026.04" },
+      { lang: "English", test: "Duolingo Score", score: "122", date: "2026.04" },
     ];
 
     const TOOLS  = ["Illustrator","PhotoShop","Claude Code"];
@@ -346,7 +347,7 @@
             <div className="flex flex-col justify-end gap-2 md:gap-3">
               <div className="text-[11px] md:text-[13px] mono uppercase tracking-[0.22em] text-neutral-500">{PROFILE.role}</div>
               <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[0.95]">{PROFILE.nameKo}</h1>
-              <div className="mono text-[13px] md:text-[15px] text-neutral-500">{PROFILE.nameEn} · @{PROFILE.handle}</div>
+              <div className="mono text-[13px] md:text-[15px] text-neutral-500">Noel · {PROFILE.nameEn} · @{PROFILE.handle}</div>
               <p className="text-[14px] md:text-[17px] text-neutral-700 mt-2 md:mt-3 max-w-[560px] leading-relaxed">{PROFILE.tagline}</p>
             </div>
 
@@ -565,7 +566,7 @@
             className="md:absolute md:right-4 md:top-1/2 md:-translate-y-1/2 px-3 py-1.5 text-[12px] mono text-neutral-500 border border-neutral-300 rounded-md hover:border-black hover:text-black bg-white"
             title="iOS 3 설정 앱 스타일로 전환"
           >
-            iOS 3
+            iOS
           </a>
         </nav>
       );
