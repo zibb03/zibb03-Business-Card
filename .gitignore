@@ -9,11 +9,9 @@ d8b067f5-019d-484e-bdc8-fd55dfb585a1_ExportBlock-02e1e72a-9355-4968-8508-24a6416
 # Local agent definitions
 agents/
 
-# Screenshots from development
-v*.png
-page-*.png
-settings-*.png
-reference-clip-*.png
+# Screenshots from development — everything except real assets
+*.png
+!assets/**/*.png
 
 # Editor / OS
 .DS_Store
