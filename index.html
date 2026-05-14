@@ -565,28 +565,26 @@
           <NavButton as="link" to="/career" active={path === "/career"}>Career</NavButton>
           <NavButton as="link" to="/awards" active={path === "/awards"}>Awards</NavButton>
           <NavButton as="link" to="/contact" active={path === "/contact"}>Contact</NavButton>
-          <div className="md:absolute md:right-4 md:top-1/2 md:-translate-y-1/2 flex items-center gap-2">
-            <a
-              href="assets/business-card.png"
-              download="jongyoon-won-business-card.png"
-              aria-label="명함을 PNG로 저장"
-              title="명함을 PNG로 저장"
-              className="w-8 h-8 grid place-items-center text-neutral-500 border border-neutral-300 rounded-md hover:border-black hover:text-black bg-white"
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M12 3v12"/>
-                <path d="M7 11l5 5 5-5"/>
-                <path d="M5 21h14"/>
-              </svg>
-            </a>
-            <a
-              href="settings.html"
-              className="px-3 py-1.5 text-[12px] mono text-neutral-500 border border-neutral-300 rounded-md hover:border-black hover:text-black bg-white"
-              title="iOS 3 설정 앱 스타일로 전환"
-            >
-              iOS
-            </a>
-          </div>
+          <a
+            href="assets/business-card.png"
+            download="jongyoon-won-business-card.png"
+            aria-label="명함을 PNG로 저장"
+            title="명함을 PNG로 저장"
+            className="w-8 h-8 grid place-items-center text-neutral-500 border border-neutral-300 rounded-md hover:border-black hover:text-black bg-white md:absolute md:right-4 md:bottom-[calc(100%+10px)]"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 3v12"/>
+              <path d="M7 11l5 5 5-5"/>
+              <path d="M5 21h14"/>
+            </svg>
+          </a>
+          <a
+            href="settings.html"
+            className="md:absolute md:right-4 md:top-1/2 md:-translate-y-1/2 px-3 py-1.5 text-[12px] mono text-neutral-500 border border-neutral-300 rounded-md hover:border-black hover:text-black bg-white"
+            title="iOS 3 설정 앱 스타일로 전환"
+          >
+            iOS
+          </a>
         </nav>
       );
     }
