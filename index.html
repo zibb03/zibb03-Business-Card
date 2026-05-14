@@ -8,6 +8,7 @@
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
@@ -33,14 +34,19 @@
     /* responsive business card: fills the available viewport, portrait/landscape auto */
     /* landscape uses ISO ID-1 ratio (~1.586) — 91:55 */
     .bcard {
-      width: min(94vw, calc((100dvh - 110px) * 55 / 91), 540px);
+      width: min(94vw, calc((100dvh - 90px) * 55 / 91), 540px);
       aspect-ratio: 55 / 91;
     }
     @media (orientation: landscape) {
       .bcard {
-        width: min(94vw, calc((100dvh - 110px) * 91 / 55), 1200px);
+        /* mobile landscape: prioritize fitting on screen and reserve less for nav so the card is tall enough */
+        width: min(94vw, calc((100dvh - 56px) * 91 / 55), 1200px);
         aspect-ratio: 91 / 55;
       }
+    }
+    /* Make PageNav a bit shorter in tight landscape so the card has more room */
+    @media (orientation: landscape) and (max-height: 460px) {
+      nav[class*="border-t"] { padding-top: 0.5rem; padding-bottom: 0.5rem; }
     }
     /* hover underline */
     .hover-underline:hover { text-decoration: underline; text-underline-offset: 3px; }
@@ -326,11 +332,10 @@
             key={path}
             className="card-bezel bcard bg-white relative overflow-hidden fade-in"
           >
-            <div className="absolute top-4 left-5 mono text-[11px] text-neutral-400 z-10 pointer-events-none">
-              BUSINESS CARD · {new Date().getFullYear()}
-            </div>
-            <div className="absolute top-4 right-5 mono text-[11px] text-neutral-400 z-10 pointer-events-none">
-              N° 001
+            {/* corner labels + a fade band so scrolled content never bleeds into them */}
+            <div className="absolute top-0 left-0 right-0 z-10 pointer-events-none flex items-start justify-between pt-3 pb-7 px-5 md:pb-8" style={{background: "linear-gradient(to bottom, #ffffff 0%, #ffffff 55%, rgba(255,255,255,0) 100%)"}}>
+              <div className="mono text-[11px] text-neutral-400">BUSINESS CARD · {new Date().getFullYear()}</div>
+              <div className="mono text-[11px] text-neutral-400">N° 001</div>
             </div>
             <div className={`absolute inset-0 pt-12 pb-6 px-7 md:pt-14 md:pb-9 md:px-11 ${scrollable ? "overflow-y-auto no-scrollbar" : ""}`}>
               {children}
@@ -340,13 +345,101 @@
       );
     }
 
-    function ProfilePage() {
+    function ExportCard({ innerRef }) {
+      // Print-ready business card: 1014×640px (≈ ISO ID-1, 91:55)
+      const wrap = {
+        position: "fixed", left: "-10000px", top: 0,
+        width: "1014px", height: "640px",
+        background: "#fff", color: "#111",
+        borderRadius: "32px",
+        boxShadow: "inset 0 0 0 1.5px #000",
+        padding: "56px 72px",
+        boxSizing: "border-box",
+        fontFamily: "Inter, 'Noto Sans KR', sans-serif",
+        display: "grid",
+        gridTemplateRows: "auto 1fr auto",
+        rowGap: "20px",
+      };
+      const mono = "IBM Plex Mono, ui-monospace, monospace";
       return (
-        <CardShell>
-          <div className="h-full grid grid-rows-[1fr_auto] gap-4">
+        <div ref={innerRef} aria-hidden style={wrap}>
+          <div style={{display: "flex", justifyContent: "space-between", fontFamily: mono, fontSize: "14px", color: "#a3a3a3", letterSpacing: "0.5px"}}>
+            <span>BUSINESS CARD · {new Date().getFullYear()}</span>
+            <span>N° 001</span>
+          </div>
+          <div style={{display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: "8px"}}>
+            <div style={{fontFamily: mono, fontSize: "16px", textTransform: "uppercase", letterSpacing: "0.22em", color: "#737373"}}>
+              {PROFILE.role}
+            </div>
+            <h1 style={{fontSize: "120px", fontWeight: 600, letterSpacing: "-0.025em", lineHeight: 0.95, margin: 0}}>
+              {PROFILE.nameKo}
+            </h1>
+            <div style={{fontFamily: mono, fontSize: "20px", color: "#737373"}}>
+              Noel · {PROFILE.nameEn} · @{PROFILE.handle}
+            </div>
+            <p style={{fontSize: "22px", color: "#404040", marginTop: "12px", maxWidth: "720px", lineHeight: 1.5}}>
+              {PROFILE.tagline}
+            </p>
+          </div>
+          <div style={{borderTop: "1px solid #e5e5e5", paddingTop: "16px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px"}}>
+            <div>
+              <div style={{fontFamily: mono, fontSize: "12px", letterSpacing: "0.18em", color: "#a3a3a3", textTransform: "uppercase"}}>Affiliation</div>
+              <div style={{color: "#262626", marginTop: "6px", fontSize: "20px"}}>
+                {PROFILE.affiliation.join(" · ")}
+              </div>
+            </div>
+            <div style={{textAlign: "right"}}>
+              <div style={{fontFamily: mono, fontSize: "12px", letterSpacing: "0.18em", color: "#a3a3a3", textTransform: "uppercase"}}>Location</div>
+              <div style={{color: "#262626", marginTop: "6px", fontSize: "20px"}}>{PROFILE.location}</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function ProfilePage() {
+      const exportRef = useRef(null);
+      const [busy, setBusy] = useState(false);
+
+      async function saveAsImage() {
+        if (busy || !window.html2canvas || !exportRef.current) return;
+        setBusy(true);
+        try {
+          const canvas = await window.html2canvas(exportRef.current, {
+            scale: 2,
+            backgroundColor: "#ffffff",
+            logging: false,
+            useCORS: true,
+          });
+          const link = document.createElement("a");
+          link.download = `jongyoon-won-business-card.png`;
+          link.href = canvas.toDataURL("image/png");
+          link.click();
+        } catch (err) {
+          console.error("save failed", err);
+          alert("이미지 저장에 실패했어요. 콘솔을 확인해주세요.");
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      return (
+        <>
+          <ExportCard innerRef={exportRef} />
+          <CardShell>
+          <div className="h-full grid grid-rows-[1fr_auto] gap-4 relative">
+            <button
+              onClick={saveAsImage}
+              disabled={busy}
+              aria-label="명함을 PNG로 저장"
+              title="명함을 PNG로 저장"
+              className="absolute -top-1 right-0 z-20 px-2.5 py-1 text-[11px] mono text-neutral-500 border border-neutral-300 rounded-md bg-white/95 hover:border-black hover:text-black disabled:opacity-50 shadow-sm"
+            >
+              {busy ? "저장 중…" : "↓ Save"}
+            </button>
             <div className="flex flex-col justify-end gap-2 md:gap-3">
               <div className="text-[11px] md:text-[13px] mono uppercase tracking-[0.22em] text-neutral-500">{PROFILE.role}</div>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[0.95]">{PROFILE.nameKo}</h1>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-semibold tracking-tight leading-[0.95]">{PROFILE.nameKo}</h1>
               <div className="mono text-[13px] md:text-[15px] text-neutral-500">Noel · {PROFILE.nameEn} · @{PROFILE.handle}</div>
               <p className="text-[14px] md:text-[17px] text-neutral-700 mt-2 md:mt-3 max-w-[560px] leading-relaxed">{PROFILE.tagline}</p>
             </div>
@@ -356,8 +449,8 @@
                 <div className="mono uppercase tracking-[0.18em] text-neutral-400 text-[10px] md:text-[11px]">Affiliation</div>
                 <div className="text-neutral-800 mt-1 leading-snug">
                   <span>{PROFILE.affiliation[0]}</span>
-                  <span className="hidden landscape:inline"> · </span>
-                  <span className="block landscape:inline">{PROFILE.affiliation[1]}</span>
+                  <span className="hidden lg:inline"> · </span>
+                  <span className="block lg:inline">{PROFILE.affiliation[1]}</span>
                 </div>
               </div>
               <div className="text-right">
@@ -366,7 +459,8 @@
               </div>
             </div>
           </div>
-        </CardShell>
+          </CardShell>
+        </>
       );
     }
 
