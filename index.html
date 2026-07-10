@@ -22,8 +22,6 @@
       color: #111;
     }
     .mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
-    /* 1px crisp grid lines */
-    .grid-line { box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.18); }
     /* 명함 카드 inner subtle shadow */
     .card-bezel {
       box-shadow:
@@ -61,7 +59,7 @@
 <body>
   <div id="root"></div>
   <script type="text/babel">
-    const { useState, useEffect, useMemo, useCallback, useContext, createContext } = React;
+    const { useState, useEffect, useContext, createContext } = React;
 
     // ========================================
     // 📦 Data (from Notion export)
@@ -69,18 +67,16 @@
     const PROFILE = {
       nameKo: "원종윤",
       nameEn: "Jongyoon Won",
-      nameAlias: "Noel",
       handle: "zibb03",
       tagline: "한 걸음씩, 끝까지 끌고 갑니다.",
       role: "Engineering · EdTech",
       affiliation: ["HUFS 정보통신공학과", "멋쟁이사자처럼 14기"],
       location: "Seoul, KR",
-      keywords: ["Engineering", "EdTech", "Notion", "Collaboration"],
       socials: [
-        { label: "GitHub",    handle: "@zibb03",       url: "https://github.com/zibb03",      mark: "GH" },
-        { label: "LinkedIn",  handle: "Jongyoon Won",  url: "https://www.linkedin.com/in/jongyoon-won-b08509237/", mark: "LI" },
-        { label: "Instagram", handle: "@zibb03",       url: "https://www.instagram.com/zibb03/", mark: "IG" },
-        { label: "YouTube",   handle: "Jongyoon Won",  url: "https://youtube.com/playlist?list=PL2L_Gm7JI31ilErFFaRebD1ihKPzlmZjI&si=nopD7NgoBdCia0yW", mark: "YT" },
+        { label: "GitHub",    handle: "@zibb03",       url: "https://github.com/zibb03" },
+        { label: "LinkedIn",  handle: "Jongyoon Won",  url: "https://www.linkedin.com/in/jongyoon-won-b08509237/" },
+        { label: "Instagram", handle: "@zibb03",       url: "https://www.instagram.com/zibb03/" },
+        { label: "YouTube",   handle: "Jongyoon Won",  url: "https://youtube.com/playlist?list=PL2L_Gm7JI31ilErFFaRebD1ihKPzlmZjI&si=nopD7NgoBdCia0yW" },
       ],
     };
 
@@ -139,17 +135,10 @@
     const TOOLS  = ["Illustrator","PhotoShop","Claude Code"];
     const SKILLS = ["Python","C/C++","Java","OpenCV","Pandas","TensorFlow","Keras"];
 
-    const PAGES = [
-      { path: "/",        label: "Profile", num: 1 },
-      { path: "/career",  label: "Career",  num: 2 },
-      { path: "/awards",  label: "Awards",  num: 3 },
-      { path: "/contact", label: "Contact", num: 4 },
-    ];
-
     // ========================================
     // 🔀 Hash Router
     // ========================================
-    const RouterCtx = createContext({ path: "/", navigate: () => {} });
+    const RouterCtx = createContext({ path: "/" });
 
     function Router({ children }) {
       const [path, setPath] = useState(() => (window.location.hash.replace(/^#/, "") || "/"));
@@ -158,19 +147,16 @@
         window.addEventListener("hashchange", onHash);
         return () => window.removeEventListener("hashchange", onHash);
       }, []);
-      const navigate = useCallback((to) => { window.location.hash = to; }, []);
-      return <RouterCtx.Provider value={{ path, navigate }}>{children}</RouterCtx.Provider>;
+      return <RouterCtx.Provider value={{ path }}>{children}</RouterCtx.Provider>;
     }
     const useRouter = () => useContext(RouterCtx);
 
     function Link({ to, className = "", children, ...rest }) {
-      const { navigate, path } = useRouter();
-      const active = path === to;
+      const { path } = useRouter();
       return (
         <a
           href={`#${to}`}
-          onClick={(e) => { e.preventDefault(); navigate(to); }}
-          aria-current={active ? "page" : undefined}
+          aria-current={path === to ? "page" : undefined}
           className={className}
           {...rest}
         >
@@ -198,117 +184,6 @@
         <span className={`px-3 py-1 text-[12px] mono whitespace-nowrap rounded-md border ${active ? "border-black text-black" : "border-neutral-300 text-neutral-600"}`}>
           {children}
         </span>
-      );
-    }
-
-    function Avatar({ mark, href, title }) {
-      return (
-        <a href={href} target="_blank" rel="noreferrer" title={title}
-           className="block w-7 h-7 rounded-full border border-neutral-300 grid place-items-center text-[10px] mono text-neutral-600 hover:border-black hover:text-black bg-white">
-          {mark}
-        </a>
-      );
-    }
-
-    function SideIcon({ children, label, onClick }) {
-      return (
-        <button
-          onClick={onClick}
-          aria-label={label}
-          title={label}
-          className="w-7 h-7 rounded-full grid place-items-center text-neutral-400 hover:text-black hover:border-neutral-400 border border-transparent">
-          {children}
-        </button>
-      );
-    }
-
-    // ========================================
-    // 🧩 Layout: top nav, left rail, right rail, bottom tags
-    // ========================================
-    function TopBar() {
-      const { path } = useRouter();
-      const current = PAGES.find(p => p.path === path) ?? PAGES[0];
-      return (
-        <header className="grid grid-cols-3 items-center px-4 sm:px-6 h-14 border-b border-neutral-200">
-          <nav className="flex items-center gap-2">
-            <NavButton as="link" to="/" active={path === "/"}>Profile</NavButton>
-            <NavButton as="link" to="/career" active={path === "/career"}>Career</NavButton>
-            <NavButton as="link" to="/awards" active={path === "/awards"} className="hidden sm:inline-block">Awards</NavButton>
-          </nav>
-          <div className="justify-self-center w-full max-w-[420px]">
-            <div className="flex items-center justify-between border border-neutral-300 rounded-md px-3 py-1.5">
-              <span className="text-[13px] text-neutral-700 truncate">{current.label} · {PROFILE.nameKo}</span>
-              <span className="mono text-[11px] text-neutral-400 ml-3 shrink-0">{current.num}/4</span>
-            </div>
-          </div>
-          <div className="justify-self-end">
-            <NavButton as="link" to="/contact" active={path === "/contact"}>Contact</NavButton>
-          </div>
-        </header>
-      );
-    }
-
-    function LeftRail() {
-      return (
-        <aside className="w-12 sm:w-14 border-r border-neutral-200 flex flex-col items-center py-4 gap-4">
-          <div className="w-9 h-9 rounded-full bg-neutral-900 text-white grid place-items-center text-[12px] mono font-semibold">
-            JW
-          </div>
-          <div className="flex-1" />
-          <div className="flex flex-col gap-3">
-            {PROFILE.socials.map(s => (
-              <Avatar key={s.label} mark={s.mark} href={s.url} title={`${s.label} ${s.handle}`} />
-            ))}
-          </div>
-        </aside>
-      );
-    }
-
-    function RightRail() {
-      const { path, navigate } = useRouter();
-      const idx = Math.max(0, PAGES.findIndex(p => p.path === path));
-      const prev = PAGES[(idx - 1 + PAGES.length) % PAGES.length];
-      const next = PAGES[(idx + 1) % PAGES.length];
-      return (
-        <aside className="w-12 sm:w-14 border-l border-neutral-200 flex flex-col items-center py-4 gap-3">
-          <SideIcon label="닫기" onClick={() => navigate("/")}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-              <path d="M6 6l12 12M18 6L6 18"/>
-            </svg>
-          </SideIcon>
-          <div className="flex-1" />
-          <SideIcon label="이전" onClick={() => navigate(prev.path)}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-              <path d="M15 6l-6 6 6 6"/>
-            </svg>
-          </SideIcon>
-          <SideIcon label="저장" onClick={() => alert("명함 정보 복사 또는 저장 — 자유롭게 확장하세요.")}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-              <path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/>
-            </svg>
-          </SideIcon>
-          <SideIcon label="다음" onClick={() => navigate(next.path)}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-              <path d="M9 6l6 6-6 6"/>
-            </svg>
-          </SideIcon>
-        </aside>
-      );
-    }
-
-    function BottomBar({ tags }) {
-      const { path } = useRouter();
-      const current = PAGES.find(p => p.path === path) ?? PAGES[0];
-      return (
-        <footer className="grid grid-cols-[40px_1fr_60px] items-center border-t border-neutral-200 h-12 px-3">
-          <span className="mono text-[12px] text-neutral-400">i</span>
-          <div className="overflow-x-auto no-scrollbar">
-            <div className="flex items-center gap-2 justify-center min-w-max px-2">
-              {tags.map((t) => <Chip key={t}>{t}</Chip>)}
-            </div>
-          </div>
-          <span className="mono text-[12px] text-neutral-500 justify-self-end">{current.num}/4</span>
-        </footer>
       );
     }
 

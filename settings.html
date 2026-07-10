@@ -354,7 +354,6 @@
     const PROFILE = {
       nameKo: "원종윤",
       nameEn: "Jongyoon Won",
-      nameAlias: "Noel",
       handle: "zibb03",
       role: "Engineering · EdTech",
       tagline: "한 걸음씩, 끝까지 끌고 갑니다.",
@@ -555,7 +554,7 @@
             </Group>
 
             <Group>
-              <Cell icon="▤" iconColor="purple" label="Career"  disclosure onClick={() => navigate("/career")}  hideIcon={false} />
+              <Cell icon="▤" iconColor="purple" label="Career"  disclosure onClick={() => navigate("/career")} />
               <Cell icon="★" iconColor="yellow" label="Awards"  disclosure onClick={() => navigate("/awards")} />
               <Cell icon="A" iconColor="green"  label="Languages" value="English" disclosure onClick={() => navigate("/awards")} />
               <Cell icon="✓" iconColor="blue"   label="Certificates" disclosure onClick={() => navigate("/awards")} />
@@ -602,8 +601,8 @@
             </Group>
 
             <Group label="TOOLS & SKILLS">
-              <StackedCell top="Tools"  main="" chips={TOOLS} />
-              <StackedCell top="Skills" main="" chips={SKILLS} />
+              <StackedCell top="Tools"  chips={TOOLS} />
+              <StackedCell top="Skills" chips={SKILLS} />
             </Group>
           </div>
         </>
